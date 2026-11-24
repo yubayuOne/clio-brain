@@ -76,10 +76,13 @@ export async function saveSetting(key: string, value: string): Promise<void> {
   await db.runAsync('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)', key, value);
 }
 
+// Never INSERT OR REPLACE here: REPLACE deletes the old row first, and with foreign keys
+// on that cascades (saving a board wiped its items, saving an item wiped its threads).
 export async function upsertBoard(b: Board): Promise<void> {
   const db = await getDb();
   await db.runAsync(
-    'INSERT OR REPLACE INTO boards (id, name, used_at, created_at) VALUES (?, ?, ?, ?)',
+    `INSERT INTO boards (id, name, used_at, created_at) VALUES (?, ?, ?, ?)
+     ON CONFLICT(id) DO UPDATE SET name = excluded.name, used_at = excluded.used_at`,
     b.id,
     b.name,
     b.usedAt,
@@ -96,9 +99,13 @@ export async function deleteBoard(id: string): Promise<void> {
 export async function upsertItem(i: Item): Promise<void> {
   const db = await getDb();
   await db.runAsync(
-    `INSERT OR REPLACE INTO items
+    `INSERT INTO items
       (id, board_id, type, title, body, url, file_name, file_uri, tags, processed, created_at, remind_at, x, y, z)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+     ON CONFLICT(id) DO UPDATE SET
+      board_id = excluded.board_id, type = excluded.type, title = excluded.title, body = excluded.body,
+      url = excluded.url, file_name = excluded.file_name, file_uri = excluded.file_uri, tags = excluded.tags,
+      processed = excluded.processed, remind_at = excluded.remind_at, x = excluded.x, y = excluded.y, z = excluded.z`,
     i.id,
     i.boardId,
     i.type,
@@ -133,7 +140,8 @@ export async function deleteItem(id: string): Promise<void> {
 export async function upsertThread(t: Thread): Promise<void> {
   const db = await getDb();
   await db.runAsync(
-    'INSERT OR REPLACE INTO threads (from_id, to_id, label, color) VALUES (?, ?, ?, ?)',
+    `INSERT INTO threads (from_id, to_id, label, color) VALUES (?, ?, ?, ?)
+     ON CONFLICT(from_id, to_id) DO UPDATE SET label = excluded.label, color = excluded.color`,
     t.fromId,
     t.toId,
     t.label,
