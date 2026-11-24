@@ -1,0 +1,68 @@
+{
+  "expo": {
+    "name": "Clio Brain",
+    "slug": "clio-brain",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.example.cliobrain"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#003520",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false,
+      "package": "com.example.cliobrain",
+      "softwareKeyboardLayoutMode": "resize"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "scheme": "cliobrain",
+    "backgroundColor": "#14110F",
+    "plugins": [
+      "expo-sqlite",
+      "expo-font",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#14110F",
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 120
+        }
+      ],
+      "expo-document-picker",
+      "expo-sharing",
+      "@react-native-community/datetimepicker",
+      [
+        "react-native-android-widget",
+        {
+          "fonts": [
+            "./node_modules/@expo-google-fonts/oswald/500Medium/Oswald_500Medium.ttf",
+            "./node_modules/@expo-google-fonts/oswald/600SemiBold/Oswald_600SemiBold.ttf",
+            "./node_modules/@expo-google-fonts/courier-prime/400Regular/CourierPrime_400Regular.ttf"
+          ],
+          "widgets": [
+            {
+              "name": "Agenda",
+              "label": "Clio Brain reminders",
+              "description": "Your next reminder and the rest of today",
+              "minWidth": "250dp",
+              "minHeight": "110dp",
+              "targetCellWidth": 4,
+              "targetCellHeight": 2,
+              "resizeMode": "horizontal|vertical",
+              "updatePeriodMillis": 1800000
+            }
+          ]
+        }
+      ]
+    ]
+  }
+}
