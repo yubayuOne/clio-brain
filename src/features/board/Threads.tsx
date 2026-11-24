@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import Svg, { Line } from 'react-native-svg';
 import type { Segment } from './geometry';
@@ -10,6 +11,50 @@ interface Props {
 }
 
 const PAD = 8;
+
+interface LabelProps {
+  fromId: string;
+  toId: string;
+  label: string;
+  mx: number;
+  my: number;
+  angle: number;
+  a11y: string;
+  onPress: (fromId: string, toId: string) => void;
+}
+
+// Primitive props only, so a card drag re-renders just the labels of its own threads.
+const ThreadLabel = memo(function ThreadLabel({ fromId, toId, label, mx, my, angle, a11y, onPress }: LabelProps) {
+  return (
+    <View
+      pointerEvents="box-none"
+      style={{
+        position: 'absolute',
+        left: mx - 120,
+        top: my - 22,
+        width: 240,
+        height: 44,
+        alignItems: 'center',
+        justifyContent: 'center',
+        transform: [{ rotate: `${angle}deg` }],
+      }}
+    >
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={a11y}
+        onPress={() => onPress(fromId, toId)}
+        hitSlop={11}
+        className={label ? 'h-[22px] justify-center bg-tape px-2' : 'h-11 w-11'}
+      >
+        {label ? (
+          <Text numberOfLines={1} className="font-mono text-xs text-text">
+            {label}
+          </Text>
+        ) : null}
+      </Pressable>
+    </View>
+  );
+});
 
 /**
  * Straight threads drawn under the cards. The SVG covers only the bounding box of
@@ -48,38 +93,18 @@ export function Threads({ segments, titleOf, onPress }: Props) {
       </Svg>
       {segments.map((s) => {
         const { fromId, toId, label } = s.thread;
-        const mx = WORLD + (s.x1 + s.x2) / 2;
-        const my = WORLD + (s.y1 + s.y2) / 2;
-        const a11y = `Thread from ${titleOf(fromId)} to ${titleOf(toId)}${label ? `, ${label}` : ''}. Edit thread`;
         return (
-          <View
+          <ThreadLabel
             key={`l-${fromId}>${toId}`}
-            pointerEvents="box-none"
-            style={{
-              position: 'absolute',
-              left: mx - 120,
-              top: my - 22,
-              width: 240,
-              height: 44,
-              alignItems: 'center',
-              justifyContent: 'center',
-              transform: [{ rotate: `${labelAngle(s)}deg` }],
-            }}
-          >
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={a11y}
-              onPress={() => onPress(fromId, toId)}
-              hitSlop={11}
-              className={label ? 'h-[22px] justify-center bg-tape px-2' : 'h-11 w-11'}
-            >
-              {label ? (
-                <Text numberOfLines={1} className="font-mono text-xs text-text">
-                  {label}
-                </Text>
-              ) : null}
-            </Pressable>
-          </View>
+            fromId={fromId}
+            toId={toId}
+            label={label}
+            mx={WORLD + (s.x1 + s.x2) / 2}
+            my={WORLD + (s.y1 + s.y2) / 2}
+            angle={labelAngle(s)}
+            a11y={`Thread from ${titleOf(fromId)} to ${titleOf(toId)}${label ? `, ${label}` : ''}. Edit thread`}
+            onPress={onPress}
+          />
         );
       })}
     </>
