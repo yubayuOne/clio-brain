@@ -16,7 +16,7 @@ interface Props<T extends string> {
   accessibilityLabel: string;
 }
 
-/** Segmented tabs, 44px tall. Used for Papan/Daftar, Inbox/Jenis/Tag and item type. */
+/** Segmented tabs, 44px tall. Used for Board/List, Inbox/Type/Tag and item type. */
 export function Segmented<T extends string>({ options, value, onChange, tone, accessibilityLabel }: Props<T>) {
   const frame = tone === 'dark' ? 'border-line bg-glass' : 'border-text';
   return (

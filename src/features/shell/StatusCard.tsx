@@ -8,7 +8,7 @@ export function StatusCard({ title, children, action }: { title: string; childre
     <View className="flex-1 items-center justify-center p-6">
       <View
         accessibilityLiveRegion="polite"
-        className="w-full max-w-[300px] -rotate-1 gap-1.5 rounded-card bg-paper px-5 py-[22px]"
+        className="w-full max-w-[300px] -rotate-1 gap-1.5 rounded-card bg-paper px-5 py-6"
         style={shadow.raised}
       >
         <Text className="text-center font-head-bold text-xl uppercase text-text">{title}</Text>

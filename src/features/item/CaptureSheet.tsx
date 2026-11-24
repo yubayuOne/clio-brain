@@ -126,7 +126,7 @@ export function CaptureSheet() {
         className="mb-1"
       />
 
-      <Text accessibilityLiveRegion="assertive" className="mb-1 min-h-[18px] font-mono text-sm text-red">
+      <Text accessibilityLiveRegion="assertive" className="mb-1 min-h-5 font-mono text-sm text-red">
         {error}
       </Text>
       <Button label="Pin to board" variant="primary" onPress={save} />

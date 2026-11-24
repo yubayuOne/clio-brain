@@ -41,13 +41,18 @@ interface SheetProps {
 /** Bottom sheet on a dark scrim. Tapping the scrim dismisses it. */
 export function Sheet({ onDismiss, children, tall, scroll = true }: SheetProps) {
   const insets = useSafeAreaInsets();
-  const pad = { paddingBottom: insets.bottom + 18 };
+  const pad = { paddingBottom: insets.bottom + 16 };
   return (
     <View className="absolute inset-0 justify-end">
-      <Pressable accessibilityLabel="Close panel" onPress={onDismiss} className="absolute inset-0 bg-ink/70" />
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Close panel"
+        onPress={onDismiss}
+        className="absolute inset-0 bg-ink/70"
+      />
       <View
         accessibilityViewIsModal
-        className="rounded-t-sheet bg-paper px-4 pt-[18px]"
+        className="rounded-t-sheet bg-paper px-4 pt-4"
         style={[tall ? { height: '88%' } : { maxHeight: '92%' }, scroll ? null : pad]}
       >
         {scroll ? (

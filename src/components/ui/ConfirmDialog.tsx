@@ -20,8 +20,13 @@ export function ConfirmDialog() {
   if (!confirm) return null;
   return (
     <View className="absolute inset-0 items-center justify-center p-6" accessibilityViewIsModal>
-      <Pressable accessibilityLabel="Cancel" onPress={dismiss} className="absolute inset-0 bg-black/60" />
-      <View accessibilityRole="alert" className="w-full max-w-[320px] rounded-ctl bg-paper p-[18px]">
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Cancel"
+        onPress={dismiss}
+        className="absolute inset-0 bg-ink/70"
+      />
+      <View accessibilityRole="alert" className="w-full max-w-[320px] rounded-ctl bg-paper p-4">
         <Text className="mb-4 font-head text-lg uppercase tracking-wide text-text">{confirm.message}</Text>
         <View className="flex-row gap-2">
           <View className="flex-1">

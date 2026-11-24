@@ -94,13 +94,11 @@ export function ReminderSheet({ id }: { id: string }) {
         />
       ) : null}
 
-      {error ? (
-        <Text accessibilityLiveRegion="polite" className="mt-2 font-mono text-sm text-red">
-          {error}
-        </Text>
-      ) : null}
+      <Text accessibilityLiveRegion="polite" className="mt-2 min-h-5 font-mono text-sm text-red">
+        {error}
+      </Text>
 
-      <View className="mt-4 flex-row items-center gap-2">
+      <View className="mt-2 flex-row items-center gap-2">
         <View className="flex-1">
           <Button label="Save reminder" variant="primary" onPress={save} />
         </View>

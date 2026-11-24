@@ -55,18 +55,18 @@ export function EditScreen({ id }: { id: string }) {
 
   return (
     <View className="absolute inset-0 bg-ink" style={{ paddingTop: insets.top + 10 }}>
-      <View className="mb-2.5 flex-row items-center justify-between px-3">
-        <IconButton icon="back" label="Back" variant="dark" size={44} onPress={save} />
+      <View className="mb-2.5 flex-row items-center justify-between px-4">
+        <IconButton icon="back" label="Back" variant="dark" onPress={save} />
         <Text className="font-head text-xs uppercase tracking-widest text-dim">{KIND_LABEL[item.type]}</Text>
         <View className="flex-row items-center gap-2">
           <Button label="Save" variant="primary" block={false} onPress={save} />
-          <IconButton icon="trash" label="Delete" variant="darkDanger" size={44} onPress={remove} />
+          <IconButton icon="trash" label="Delete" variant="darkDanger" onPress={remove} />
         </View>
       </View>
 
       <ScrollView
         keyboardShouldPersistTaps="handled"
-        contentContainerStyle={{ paddingHorizontal: 12, paddingBottom: insets.bottom + 40 }}
+        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: insets.bottom + 40 }}
       >
         <View className="rounded-card bg-paper p-4" style={shadow.raised}>
           <Field

@@ -6,7 +6,7 @@ import { currentBoard, useData } from '@/store/data';
 import { useUi, type Tab } from '@/store/ui';
 import { colors } from '@/theme/tokens';
 
-/** Floating header: brand, folder switcher and the Papan/Daftar tabs. */
+/** Floating header: brand, folder switcher and the Board/List tabs. */
 export function Header() {
   const insets = useSafeAreaInsets();
   const board = useData(currentBoard);
@@ -20,14 +20,14 @@ export function Header() {
           <Text
             className="font-head-bold text-2xl tracking-[2px] text-paper"
             style={{
-              textShadowColor: 'rgba(0,0,0,0.6)',
+              textShadowColor: colors.shade,
               textShadowRadius: 3,
               textShadowOffset: { width: 0, height: 1 },
             }}
           >
             CLIO BRAIN
           </Text>
-          <View className="ml-1.5 mt-2 h-[9px] w-[9px] rounded-full bg-red" />
+          <View className="ml-1.5 mt-2 h-2.5 w-2.5 rounded-full bg-red" />
         </View>
         {ready && board ? (
           <Pressable

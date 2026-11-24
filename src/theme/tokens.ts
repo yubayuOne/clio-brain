@@ -23,6 +23,8 @@ export const colors = {
   scrim: 'rgba(10,8,6,0.72)',
   glass: 'rgba(20,17,15,0.82)',
   dot: 'rgba(239,232,216,0.30)',
+  /** Text shadow for paper-colored text over the canvas. */
+  shade: 'rgba(0,0,0,0.6)',
 } as const;
 
 /** Thread colours. The first one is the default. */

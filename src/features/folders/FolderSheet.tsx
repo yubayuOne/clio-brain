@@ -3,6 +3,7 @@ import { FlatList, Text, View } from 'react-native';
 import { Button } from '@/components/ui/Button';
 import { Field } from '@/components/ui/Field';
 import { IconButton } from '@/components/ui/IconButton';
+import { Label } from '@/components/ui/Label';
 import { Row } from '@/components/ui/Row';
 import { Sheet, SheetHeader } from '@/components/ui/Sheet';
 import { byName } from '@/lib/text';
@@ -34,7 +35,10 @@ export function FolderSheet() {
     if (query) {
       const hits = boards.filter((b) => b.name.toLowerCase().includes(query)).sort(byName);
       return hits.length
-        ? [{ key: 'h', heading: `${hits.length} hasil` }, ...hits.map((b) => ({ key: b.id, board: b }))]
+        ? [
+            { key: 'h', heading: `${hits.length} ${hits.length === 1 ? 'result' : 'results'}` },
+            ...hits.map((b) => ({ key: b.id, board: b })),
+          ]
         : [];
     }
     const all = [...boards].sort(byName).map((b) => ({ key: b.id, board: b }));
@@ -110,7 +114,7 @@ export function FolderSheet() {
         }
         renderItem={({ item: e }) =>
           e.heading ? (
-            <Text className="mb-1.5 mt-5 font-head text-xs uppercase tracking-widest text-mute">{e.heading}</Text>
+            <Label className="mb-1.5 mt-5">{e.heading}</Label>
           ) : e.board ? (
             <Row
               title={e.board.name}

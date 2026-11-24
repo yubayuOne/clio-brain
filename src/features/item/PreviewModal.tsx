@@ -1,6 +1,7 @@
 import { Linking, Pressable, ScrollView, Text, View } from 'react-native';
 import { Icon } from '@/components/ui/Icon';
 import { IconButton } from '@/components/ui/IconButton';
+import { Label } from '@/components/ui/Label';
 import { openFile } from '@/lib/files';
 import { KIND_LABEL, formatWhen } from '@/lib/text';
 import { useShallow } from 'zustand/react/shallow';
@@ -22,7 +23,7 @@ function Connections({
   if (rows.length === 0) return null;
   return (
     <View className="mb-2">
-      <Text className="mb-0.5 font-head text-xs uppercase tracking-widest text-mute">{title}</Text>
+      <Label className="mb-0.5">{title}</Label>
       {rows.map(({ t, it }) => (
         <View key={it.id} className="flex-row flex-wrap items-center gap-2">
           <Pressable
@@ -52,10 +53,15 @@ export function PreviewModal({ id }: { id: string }) {
 
   return (
     <View className="absolute inset-0 items-center justify-center">
-      <Pressable accessibilityLabel="Close preview" onPress={close} className="absolute inset-0 bg-ink/70" />
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Close preview"
+        onPress={close}
+        className="absolute inset-0 bg-ink/70"
+      />
       <View className="w-[92%] max-w-[390px]" accessibilityViewIsModal>
         <View className="max-h-[78vh] rounded-card bg-paper" style={shadow.raised}>
-          <ScrollView contentContainerClassName="px-5 pb-3.5 pt-[26px]" bounces={false}>
+          <ScrollView contentContainerClassName="px-5 pb-3.5 pt-6" bounces={false}>
             <View className="mb-1 flex-row items-center justify-between">
               <Text className="font-head text-xs uppercase tracking-widest text-red">{KIND_LABEL[item.type]}</Text>
               {item.processed ? null : (

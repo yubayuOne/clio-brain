@@ -131,11 +131,7 @@ export const PaperCard = memo(function PaperCard({
 
   const label = `${KIND_LABEL[item.type]}: ${item.title}${item.processed ? '' : ', in inbox'}${item.remindAt ? `, reminder ${formatWhen(item.remindAt)}` : ''}`;
   const pad =
-    item.type === 'file'
-      ? 'px-2.5 pb-3 pt-3.5'
-      : item.type === 'link'
-        ? 'px-3 pb-[11px] pt-3.5'
-        : 'px-3 pb-[11px] pt-4';
+    item.type === 'file' ? 'px-2.5 pb-3 pt-3.5' : item.type === 'link' ? 'px-3 pb-3 pt-3.5' : 'px-3 pb-3 pt-4';
 
   return (
     <GestureDetector gesture={gesture}>

@@ -3,13 +3,10 @@ import { Text, View } from 'react-native';
 import { Button } from '@/components/ui/Button';
 import { Field } from '@/components/ui/Field';
 import { IconButton } from '@/components/ui/IconButton';
+import { Label } from '@/components/ui/Label';
 import { Sheet, SheetHeader } from '@/components/ui/Sheet';
 import { currentBoard, useData } from '@/store/data';
 import { useUi } from '@/store/ui';
-
-function Heading({ children }: { children: string }) {
-  return <Text className="mb-1.5 mt-2 font-head text-xs uppercase tracking-widest text-mute">{children}</Text>;
-}
 
 /** Create a folder, rename the active one, or delete it (never the last one). */
 export function FolderForm({ focus }: { focus: 'new' | 'rename' }) {
@@ -40,7 +37,7 @@ export function FolderForm({ focus }: { focus: 'new' | 'rename' }) {
   return (
     <Sheet onDismiss={close}>
       <SheetHeader title="Manage folders" onBack={() => useUi.getState().open({ kind: 'folders' })} />
-      <Heading>New folder</Heading>
+      <Label className="mb-1.5 mt-2">New folder</Label>
       <View className="flex-row gap-2">
         <View className="flex-1">
           <Field
@@ -57,13 +54,13 @@ export function FolderForm({ focus }: { focus: 'new' | 'rename' }) {
             autoFocus={focus === 'new'}
           />
         </View>
-        <Button label="Buat" variant="primary" block={false} onPress={create} />
+        <Button label="Create" variant="primary" block={false} onPress={create} />
       </View>
-      <Text accessibilityLiveRegion="assertive" className="min-h-[18px] font-mono text-sm text-red">
+      <Text accessibilityLiveRegion="assertive" className="min-h-5 font-mono text-sm text-red">
         {error}
       </Text>
 
-      <Heading>Current folder</Heading>
+      <Label className="mb-1.5 mt-2">Current folder</Label>
       <View className="flex-row gap-2">
         <View className="flex-1">
           <Field

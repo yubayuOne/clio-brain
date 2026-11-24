@@ -25,7 +25,7 @@ export interface Confirm {
 interface UiState {
   tab: Tab;
   group: ListGroup;
-  /** Drill-down inside Jenis or Tag: "type:note" or "tag:ide". */
+  /** Drill-down inside Type or Tag: "type:note" or "tag:idea". */
   drill: string | null;
   overlay: Overlay | null;
   picker: boolean;
