@@ -2,7 +2,7 @@
   "expo": {
     "name": "Clio Brain",
     "slug": "clio-brain",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
@@ -19,6 +19,7 @@
       },
       "predictiveBackGestureEnabled": false,
       "package": "com.example.cliobrain",
+      "versionCode": 2,
       "softwareKeyboardLayoutMode": "resize"
     },
     "web": {
@@ -61,6 +62,16 @@
               "updatePeriodMillis": 1800000
             }
           ]
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "buildArchs": ["armeabi-v7a", "arm64-v8a"],
+            "enableMinifyInReleaseBuilds": true,
+            "enableShrinkResourcesInReleaseBuilds": true
+          }
         }
       ]
     ]
