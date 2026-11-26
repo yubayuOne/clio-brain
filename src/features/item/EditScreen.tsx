@@ -96,7 +96,7 @@ export function EditScreen({ id }: { id: string }) {
 
   return (
     <View className="absolute inset-0 bg-ink" style={{ paddingTop: insets.top + 10 }}>
-      <View className="mb-2.5 flex-row items-center justify-between px-4">
+      <View className="mb-2.5 w-full max-w-2xl flex-row items-center justify-between self-center px-4">
         <IconButton icon="back" label="Back" variant="dark" onPress={save} />
         <Text className="font-head text-xs uppercase tracking-widest text-dim">{KIND_LABEL[item.type]}</Text>
         <View className="flex-row items-center gap-2">
@@ -110,7 +110,7 @@ export function EditScreen({ id }: { id: string }) {
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: insets.bottom + 40 }}
       >
-        <View className="rounded-card bg-paper p-4" style={shadow.raised}>
+        <View className="w-full max-w-2xl self-center rounded-card bg-paper p-4" style={shadow.raised}>
           <Field
             headline
             multiline

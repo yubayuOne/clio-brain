@@ -115,7 +115,7 @@ export function ListView() {
 
   return (
     <View className="flex-1">
-      <View className="mx-4 mb-3">
+      <View className="mb-3 w-full max-w-2xl self-center px-4">
         <Segmented
           tone="dark"
           accessibilityLabel="List grouping"
@@ -131,6 +131,7 @@ export function ListView() {
       <FlatList
         data={rows}
         keyExtractor={(r) => r.key}
+        contentContainerClassName="w-full max-w-2xl self-center"
         contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: insets.bottom + 120 }}
         ListEmptyComponent={empty ? <Empty text={empty} /> : undefined}
         renderItem={({ item: r }) =>

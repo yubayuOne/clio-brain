@@ -5,7 +5,7 @@ import { Oswald_600SemiBold } from '@expo-google-fonts/oswald/600SemiBold';
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, type ReactNode } from 'react';
 import { Linking, Pressable, Text, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -46,6 +46,16 @@ function SaveNotice() {
       >
         <Icon name="close" size={20} color={colors.text} />
       </Pressable>
+    </View>
+  );
+}
+
+/** In landscape the camera cutout sits on a side; inset everything from it once, here. */
+function SafeSides({ children }: { children: ReactNode }) {
+  const insets = useSafeAreaInsets();
+  return (
+    <View className="flex-1 bg-ink" style={{ paddingLeft: insets.left, paddingRight: insets.right }}>
+      {children}
     </View>
   );
 }
@@ -127,11 +137,11 @@ export default function App() {
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: colors.ink }}>
       <SafeAreaProvider>
         <StatusBar style="light" />
-        <View className="flex-1 bg-ink">
+        <SafeSides>
           <Workspace />
           <OverlayHost />
           <ConfirmDialog />
-        </View>
+        </SafeSides>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

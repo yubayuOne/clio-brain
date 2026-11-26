@@ -43,7 +43,7 @@ export function Header() {
           </Pressable>
         ) : null}
       </View>
-      <View className="mx-4 mb-2.5 mt-0.5">
+      <View className="mb-2.5 mt-0.5 w-full max-w-2xl self-center px-4">
         <Segmented<Tab>
           tone="dark"
           accessibilityLabel="View"

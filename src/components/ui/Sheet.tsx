@@ -52,7 +52,7 @@ export function Sheet({ onDismiss, children, tall, scroll = true }: SheetProps) 
       />
       <View
         accessibilityViewIsModal
-        className="rounded-t-sheet bg-paper px-4 pt-4"
+        className="w-full max-w-xl self-center rounded-t-sheet bg-paper px-4 pt-4"
         style={[tall ? { height: '88%' } : { maxHeight: '92%' }, scroll ? null : pad]}
       >
         {scroll ? (
