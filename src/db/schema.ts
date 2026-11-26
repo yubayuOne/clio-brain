@@ -42,6 +42,17 @@ const MIGRATIONS: string[] = [
   );
   `,
   `ALTER TABLE items ADD COLUMN remind_at INTEGER;`,
+  `
+  ALTER TABLE boards ADD COLUMN updated_at INTEGER NOT NULL DEFAULT 0;
+  ALTER TABLE items ADD COLUMN updated_at INTEGER NOT NULL DEFAULT 0;
+  ALTER TABLE threads ADD COLUMN updated_at INTEGER NOT NULL DEFAULT 0;
+  CREATE TABLE IF NOT EXISTS tombstones (
+    kind TEXT NOT NULL,
+    id TEXT NOT NULL,
+    deleted_at INTEGER NOT NULL,
+    PRIMARY KEY (kind, id)
+  );
+  `,
 ];
 
 export async function migrate(db: SQLiteDatabase): Promise<void> {

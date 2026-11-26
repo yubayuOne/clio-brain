@@ -6,6 +6,8 @@ export interface Board {
   /** Last time the board was opened, used for the "recent" list. */
   usedAt: number;
   createdAt: number;
+  /** Last change (epoch ms); newer wins when two devices sync. */
+  updatedAt: number;
 }
 
 export interface Item {
@@ -27,6 +29,7 @@ export interface Item {
   x: number;
   y: number;
   z: number;
+  updatedAt: number;
 }
 
 /** A directed connection between two items on the same board. */
@@ -35,6 +38,15 @@ export interface Thread {
   toId: string;
   label: string;
   color: string;
+  updatedAt: number;
+}
+
+/** Record of a deletion, so a sync does not bring the deleted record back from another device. */
+export interface Tombstone {
+  kind: 'board' | 'item' | 'thread';
+  /** Board or item id; for threads the item pair, see threadKey. */
+  id: string;
+  deletedAt: number;
 }
 
 export interface Viewport {

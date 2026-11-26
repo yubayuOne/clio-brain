@@ -2,7 +2,8 @@ import type { Board, Item, Thread } from '@/types';
 
 /** Sample content shown on first launch, clearly marked "Example" so it reads as a demo. */
 export function seedData(now = Date.now()): { board: Board; items: Item[]; threads: Thread[] } {
-  const board: Board = { id: 'b0', name: 'General', usedAt: now, createdAt: now };
+  // updatedAt 0: two fresh devices share these ids, so a sync merges their samples into one.
+  const board: Board = { id: 'b0', name: 'General', usedAt: now, createdAt: now, updatedAt: 0 };
   const base = {
     boardId: board.id,
     url: '',
@@ -11,6 +12,7 @@ export function seedData(now = Date.now()): { board: Board; items: Item[]; threa
     tags: ['example'],
     processed: true,
     remindAt: null,
+    updatedAt: 0,
   };
   const items: Item[] = [
     {
@@ -52,8 +54,8 @@ export function seedData(now = Date.now()): { board: Board; items: Item[]; threa
     },
   ];
   const threads: Thread[] = [
-    { fromId: 's1', toId: 's2', label: 'reference', color: '#E8584D' },
-    { fromId: 's3', toId: 's1', label: 'source', color: '#E8584D' },
+    { fromId: 's1', toId: 's2', label: 'reference', color: '#E8584D', updatedAt: 0 },
+    { fromId: 's3', toId: 's1', label: 'source', color: '#E8584D', updatedAt: 0 },
   ];
   return { board, items, threads };
 }

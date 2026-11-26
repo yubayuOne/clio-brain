@@ -51,11 +51,13 @@ Built with `react-native-android-widget` (its config plugin generates the provid
 - `widget/index.tsx`: `registerWidget()` (called from `index.ts`, because Android runs the task headless without mounting App) reads SQLite through `db/repo` directly since the store may be empty; `startWidgetSync()` subscribes to the store and redraws only when the agenda changes (card drags change items every frame).
 - The library throws on import without its native module, so everything loads through `lib/widget.ts`, which returns null on Expo Go, iOS and web.
 
-## Action menu and backups
+## Action menu, backups and sync
 
 `features/shell/ActionMenu.tsx` is the only floating button: its menu holds New item, Thread mode, Tidy board (board tab) and Settings. Menu open state is local; it closes on Android back itself because it is not an overlay.
 
-Backups are JSON (`format: "clio-brain-backup"`, `version: 1`, boards, items, threads). `lib/backup.ts` builds and validates them: an import must be complete and consistent (types, unique ids, items on existing boards, threads within one board, one per pair), otherwise nothing is touched. `store.importBackup` writes through `repo.replaceAll` in one transaction, then cancels and reschedules reminders and reloads. Attached files are only referenced by URI, so a backup restored on another device keeps the cards but not the files.
+Backups are JSON (`format: "clio-brain-backup"`, `version: 2`, boards, items, threads, tombstones; version 1 files still import). `lib/backup.ts` builds and validates them: an import must be complete and consistent (types, unique ids, items on existing boards, threads within one board, one per pair), otherwise nothing is touched. `store.importBackup` writes through `repo.replaceAll` in one transaction, then cancels and reschedules reminders and reloads. Attached files are only referenced by URI, so a backup restored on another device keeps the cards but not the files.
+
+Google Drive sync (Android development builds only) uses the same file format. Every board, item and thread carries `updatedAt`, and every delete leaves a row in `tombstones` (threads keyed by their unordered item pair). `store.syncDrive` signs in through `lib/google.ts` (scope `drive.appdata`, a hidden per-app folder), downloads `clio-brain.json` through `lib/drive.ts`, merges with `lib/sync.ts` (newer `updatedAt` wins per record; a record survives only if changed after its tombstone; orphans are dropped), uploads, then writes the result with `repo.replaceAll`. It never overwrites a Drive file it cannot parse, re-merges if another device uploaded meanwhile or this device changed during the sync, and only one sync runs at a time. `App.tsx` syncs silently on start, on resume and on leaving the app; Settings syncs on request and shows the last outcome.
 
 ## Files
 
@@ -68,4 +70,5 @@ Backups are JSON (`format: "clio-brain-backup"`, `version: 1`, boards, items, th
 | Load all data into memory | simple, instant UI | when items per device reach the thousands |
 | Card drags on the JS thread | readable code | when dragging cards feels choppy on low-end phones |
 | Threads tappable only at the midpoint | label doubles as touch area | when users struggle to find unlabeled threads |
+| Drive sync is last-writer-wins per record | no server, simple merge | when people edit the same note on two phones at once |
 | No Expo Router | one workspace with overlays; the two widget deep links are parsed in `App.tsx` | when more deep links or standalone screens are added |

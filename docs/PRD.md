@@ -15,11 +15,11 @@ One person who collects ideas, references and files from their phone and wants t
 1. Capture a note, link or file in a few taps from any screen.
 2. Connect two items visually, with a thread label and color.
 3. Separate topics into folders without hassle, even with hundreds of folders.
-4. Work fully without internet. Data never leaves the device.
+4. Work fully without internet. Data stays on the device unless the user connects Google Drive sync, which copies it only to the user's own Drive.
 
 ## 4. Non-goals (MVP)
 
-- Sync between devices, accounts, or cloud backup.
+- Real-time sync, accounts of our own, or a server of our own (Drive sync runs on open, on leave and on request).
 - Full-text search across notes (removed from the prototype at the owner's request).
 - Nested folders, collaboration, a markdown editor, or file content previews.
 - Dedicated tablet or desktop layouts.
@@ -107,14 +107,14 @@ One person who collects ideas, references and files from their phone and wants t
 
 ## 6. Non-functional requirements
 
-- Fully offline; no network requests other than opening a link at the user's request.
+- Fully offline; the only network requests are opening a link at the user's request and Google Drive sync after the user connects an account.
 - Touch targets at least 44pt; body text at least 14px, input fields 16px.
 - Every icon control has an `accessibilityLabel`; the Android back button closes the topmost layer.
 - Folder and item lists use virtualization (FlatList).
 
 ## 7. Open questions
 
-1. Do we need data export/import (a JSON file) as a backup before sync exists?
+1. ~~Do we need data export/import (a JSON file) as a backup before sync exists?~~ Done: Settings > Data, and Google Drive sync.
 2. Do we need a way to return an item to the Inbox? There is currently none once an item is done.
 3. Global search: when does it come back, and what does it cover (titles only or bodies too)?
 4. ~~Final logo and app icon.~~ Done: Clio engraving, see `assets/`.

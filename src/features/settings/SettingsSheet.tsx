@@ -5,6 +5,8 @@ import { Row } from '@/components/ui/Row';
 import { Sheet, SheetHeader } from '@/components/ui/Sheet';
 import { parseBackup, toBackupJson } from '@/lib/backup';
 import { pickTextFile, shareTextFile } from '@/lib/files';
+import { disconnectDrive, driveAccount, driveAvailable } from '@/lib/google';
+import { formatTime } from '@/lib/text';
 import { useData } from '@/store/data';
 import { useUi } from '@/store/ui';
 
@@ -13,14 +15,28 @@ const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`;
 /** App settings: back up all data to a JSON file, or restore from one. */
 export function SettingsSheet() {
   const [error, setError] = useState('');
+  const [account, setAccount] = useState(driveAccount);
+  const [syncing, setSyncing] = useState(false);
+  const lastSync = useData((s) => s.lastSync);
   const close = () => useUi.getState().close();
+
+  const sync = async () => {
+    setSyncing(true);
+    await useData.getState().syncDrive(true);
+    setAccount(driveAccount());
+    setSyncing(false);
+  };
+  const disconnect = async () => {
+    await disconnectDrive();
+    setAccount(null);
+  };
 
   const exportData = async () => {
     setError('');
-    const { boards, items, threads } = useData.getState();
+    const { boards, items, threads, tombstones } = useData.getState();
     const name = `clio-brain-${new Date().toISOString().slice(0, 10)}.json`;
     try {
-      if (!(await shareTextFile(name, toBackupJson({ boards, items, threads })))) {
+      if (!(await shareTextFile(name, toBackupJson({ boards, items, threads, tombstones })))) {
         setError('Export is not available on this device.');
       }
     } catch {
@@ -66,6 +82,28 @@ export function SettingsSheet() {
         <Text accessibilityLiveRegion="polite" className="mt-2 font-mono text-sm text-red">
           {error}
         </Text>
+      ) : null}
+
+      {driveAvailable() ? (
+        <>
+          <Label className="mb-1 mt-5">Google Drive</Label>
+          <Row
+            icon="cloud"
+            title={syncing ? 'Syncing...' : account ? 'Sync now' : 'Connect Google Drive'}
+            meta={account ?? undefined}
+            onPress={() => void sync()}
+            last={!account}
+          />
+          {account ? <Row icon="close" title="Disconnect" onPress={() => void disconnect()} last /> : null}
+          <Text
+            accessibilityLiveRegion="polite"
+            className={`mt-2 min-h-5 font-mono text-sm ${lastSync && !lastSync.ok ? 'text-red' : 'text-mute'}`}
+          >
+            {lastSync
+              ? `${lastSync.message} ${lastSync.ok ? `at ${formatTime(lastSync.at)}` : ''}`.trim()
+              : 'Keeps folders, cards, threads and reminders the same on every phone signed in to the same Google account. Attached files are not synced.'}
+          </Text>
+        </>
       ) : null}
     </Sheet>
   );

@@ -6,7 +6,7 @@ import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, type ReactNode } from 'react';
-import { Linking, Pressable, Text, View } from 'react-native';
+import { AppState, Linking, Pressable, Text, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '@/components/ui/Button';
@@ -72,6 +72,17 @@ function Workspace() {
     useUi.getState().open({ kind: 'preview', id: itemId });
   }, []);
   useReminderTaps(status === 'ready', openItem);
+
+  // Google Drive sync: on start, when the app comes back, and when it is left so the last edits
+  // go up. Silent, and a no-op until an account is connected in Settings.
+  useEffect(() => {
+    if (status !== 'ready') return;
+    void useData.getState().syncDrive(false);
+    const sub = AppState.addEventListener('change', (s) => {
+      if (s === 'active' || s === 'background') void useData.getState().syncDrive(false);
+    });
+    return () => sub.remove();
+  }, [status]);
 
   // Widget taps arrive as cliobrain://item/<id> or cliobrain://capture.
   useEffect(() => {
