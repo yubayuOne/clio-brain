@@ -24,6 +24,8 @@ const PATHS = {
   settings: 'M4 7h10M18 7h2M4 17h2M10 17h10M14 5v4M6 15v4',
   upload: 'M12 15V4M7 9l5-5 5 5M5 20h14',
   download: 'M12 4v11M7 10l5 5 5-5M5 20h14',
+  undo: 'M9 14L4 9l5-5M4 9h10a6 6 0 0 1 0 12h-3',
+  checklist: 'M4 4h6v6H4zM4 14h6v6H4zM14 7h6M14 17h6',
 } as const;
 
 export type IconName = keyof typeof PATHS;

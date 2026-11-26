@@ -2,7 +2,7 @@ import { memo, useEffect, useRef } from 'react';
 import { Text, View } from 'react-native';
 import { GestureDetector, useCompetingGestures, usePanGesture, useTapGesture } from 'react-native-gesture-handler';
 import { Icon } from '@/components/ui/Icon';
-import { KIND_LABEL, fileExt, formatWhen, hostOf, tiltOf } from '@/lib/text';
+import { KIND_LABEL, displayBody, fileExt, formatWhen, hostOf, tiltOf } from '@/lib/text';
 import { canvas, cardWidth, colors, shadow } from '@/theme/tokens';
 import type { Item } from '@/types';
 import { WORLD } from './geometry';
@@ -84,7 +84,7 @@ function CardBody({ item }: { item: Item }) {
       </Text>
       {item.body ? (
         <Text numberOfLines={3} className="mt-1.5 font-mono text-xs leading-4 text-mute">
-          {item.body}
+          {displayBody(item.body)}
         </Text>
       ) : null}
       <Tags tags={item.tags} />

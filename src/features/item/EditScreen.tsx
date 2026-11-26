@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Linking, Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useShallow } from 'zustand/react/shallow';
@@ -7,10 +7,13 @@ import { Field } from '@/components/ui/Field';
 import { Icon } from '@/components/ui/Icon';
 import { IconButton } from '@/components/ui/IconButton';
 import { Row } from '@/components/ui/Row';
-import { KIND_LABEL, cleanTitle, formatWhen, normalizeUrl, parseTags } from '@/lib/text';
+import { KIND_LABEL, cleanTitle, formatWhen, normalizeUrl, parseTags, toggleChecklistLine } from '@/lib/text';
 import { incoming, outgoing, useData } from '@/store/data';
 import { useUi } from '@/store/ui';
 import { colors, shadow } from '@/theme/tokens';
+
+const UNDO_PAUSE = 800;
+const UNDO_LIMIT = 100;
 
 /**
  * Full-screen edit form. Fields save when editing ends; leaving the form marks an
@@ -30,6 +33,29 @@ export function EditScreen({ id }: { id: string }) {
   const [body, setBody] = useState(item?.body ?? '');
   const [url, setUrl] = useState(item?.url ?? '');
   const [tags, setTags] = useState(item?.tags.join(', ') ?? '');
+  const cursor = useRef(0);
+
+  // Undo history of title and body. A burst of typing is one step: the state before it is
+  // recorded only when the previous change is more than UNDO_PAUSE ms old.
+  const history = useRef<{ title: string; body: string }[]>([]);
+  const lastChange = useRef(0);
+  const [canUndo, setCanUndo] = useState(false);
+  const record = (force = false) => {
+    const now = Date.now();
+    if (force || now - lastChange.current > UNDO_PAUSE) {
+      history.current = [...history.current.slice(-(UNDO_LIMIT - 1)), { title, body }];
+      setCanUndo(true);
+    }
+    lastChange.current = force ? 0 : now;
+  };
+  const changeTitle = (t: string) => {
+    record();
+    setTitle(t);
+  };
+  const changeBody = (b: string) => {
+    record();
+    setBody(b);
+  };
 
   if (!item) return null;
   const board = boards.find((b) => b.id === item.boardId);
@@ -51,6 +77,21 @@ export function EditScreen({ id }: { id: string }) {
       useData.getState().deleteItem(id);
       useUi.getState().close();
     });
+  const undo = () => {
+    const prev = history.current.pop();
+    if (!prev) return;
+    setTitle(prev.title);
+    setBody(prev.body);
+    update(id, { title: cleanTitle(prev.title), body: prev.body });
+    lastChange.current = 0;
+    setCanUndo(history.current.length > 0);
+  };
+  const toggleChecklist = () => {
+    record(true);
+    const next = toggleChecklistLine(body, cursor.current);
+    setBody(next);
+    update(id, { body: next });
+  };
   const openThread = (a: string, b: string) => useUi.getState().open({ kind: 'thread', a, b, returnTo: id });
 
   return (
@@ -59,6 +100,7 @@ export function EditScreen({ id }: { id: string }) {
         <IconButton icon="back" label="Back" variant="dark" onPress={save} />
         <Text className="font-head text-xs uppercase tracking-widest text-dim">{KIND_LABEL[item.type]}</Text>
         <View className="flex-row items-center gap-2">
+          <IconButton icon="undo" label="Undo" variant="dark" disabled={!canUndo} onPress={undo} />
           <Button label="Save" variant="primary" block={false} onPress={save} />
           <IconButton icon="trash" label="Delete" variant="darkDanger" onPress={remove} />
         </View>
@@ -75,7 +117,7 @@ export function EditScreen({ id }: { id: string }) {
             accessibilityLabel="Title"
             placeholder="Title"
             value={title}
-            onChangeText={setTitle}
+            onChangeText={changeTitle}
             onEndEditing={() => {
               const t = cleanTitle(title);
               setTitle(t);
@@ -117,16 +159,22 @@ export function EditScreen({ id }: { id: string }) {
             </View>
           ) : null}
 
-          <Field
-            multiline
-            accessibilityLabel="Body"
-            placeholder="Write a note"
-            value={body}
-            onChangeText={setBody}
-            onEndEditing={() => update(id, { body })}
-            style={{ minHeight: 128 }}
-            className="mb-2"
-          />
+          <View className="mb-2 flex-row items-start gap-2">
+            <View className="flex-1">
+              <Field
+                multiline
+                lists
+                accessibilityLabel="Body"
+                placeholder="Write a note"
+                value={body}
+                onChangeText={changeBody}
+                onSelectionChange={(e) => (cursor.current = e.nativeEvent.selection.start)}
+                onEndEditing={() => update(id, { body })}
+                style={{ minHeight: 128 }}
+              />
+            </View>
+            <IconButton icon="checklist" label="Checklist item" onPress={toggleChecklist} />
+          </View>
 
           <View className="flex-row items-start gap-2">
             <View className="flex-1">

@@ -119,6 +119,7 @@ export function CaptureSheet() {
       <Field
         accessibilityLabelledBy="capBody"
         multiline
+        lists
         value={body}
         onChangeText={setBody}
         autoFocus={type === 'note'}

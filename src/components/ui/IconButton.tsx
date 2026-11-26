@@ -12,6 +12,7 @@ interface Props {
   variant?: Variant;
   size?: 44 | 48;
   pressed?: boolean;
+  disabled?: boolean;
 }
 
 const styles: Record<Variant, { box: string; color: string }> = {
@@ -23,17 +24,18 @@ const styles: Record<Variant, { box: string; color: string }> = {
   dock: { box: 'border-line bg-ink', color: colors.paper },
 };
 
-export function IconButton({ icon, label, onPress, variant = 'outline', size = 48, pressed }: Props) {
+export function IconButton({ icon, label, onPress, variant = 'outline', size = 48, pressed, disabled }: Props) {
   const s = pressed ? { box: 'border-paper bg-paper', color: colors.text } : styles[variant];
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={label}
-      accessibilityState={pressed === undefined ? undefined : { selected: pressed }}
+      accessibilityState={{ selected: pressed, disabled }}
+      disabled={disabled}
       onPress={onPress}
       hitSlop={size === 44 ? 2 : 0}
       style={{ width: size, height: size }}
-      className={`items-center justify-center rounded-ctl border active:opacity-80 ${s.box}`}
+      className={`items-center justify-center rounded-ctl border active:opacity-80 ${s.box} ${disabled ? 'opacity-40' : ''}`}
     >
       <Icon name={icon} size={24} color={s.color} />
     </Pressable>

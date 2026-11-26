@@ -3,7 +3,7 @@ import { Icon } from '@/components/ui/Icon';
 import { IconButton } from '@/components/ui/IconButton';
 import { Label } from '@/components/ui/Label';
 import { openFile } from '@/lib/files';
-import { KIND_LABEL, formatWhen } from '@/lib/text';
+import { KIND_LABEL, bodyLines, formatWhen, toggleCheck } from '@/lib/text';
 import { useShallow } from 'zustand/react/shallow';
 import { incoming, outgoing, useData } from '@/store/data';
 import { useUi } from '@/store/ui';
@@ -37,6 +37,47 @@ function Connections({
           {t.label ? <Text className="font-mono text-sm text-mute">{t.label}</Text> : null}
         </View>
       ))}
+    </View>
+  );
+}
+
+/** Note text; checklist lines render as boxes that tick right here, without opening the editor. */
+function Body({ id, body }: { id: string; body: string }) {
+  const lines = bodyLines(body);
+  if (lines.every((l) => l.checked === null)) {
+    return <Text className="mb-3.5 font-mono text-base leading-6 text-text">{body}</Text>;
+  }
+  const toggle = (n: number) => {
+    const cur = useData.getState().items.find((i) => i.id === id)?.body ?? body;
+    useData.getState().updateItem(id, { body: toggleCheck(cur, n) });
+  };
+  return (
+    <View className="mb-3.5">
+      {lines.map((l, n) =>
+        l.checked === null ? (
+          <Text key={n} className="font-mono text-base leading-6 text-text">
+            {l.text}
+          </Text>
+        ) : (
+          <Pressable
+            key={n}
+            accessibilityRole="checkbox"
+            accessibilityState={{ checked: l.checked }}
+            accessibilityLabel={l.text}
+            onPress={() => toggle(n)}
+            className="min-h-11 flex-row items-center gap-2.5 active:opacity-80"
+          >
+            <View
+              className={`h-5 w-5 items-center justify-center rounded-sm border-2 border-text ${l.checked ? 'bg-text' : ''}`}
+            >
+              {l.checked ? <Icon name="check" size={16} color={colors.paper} /> : null}
+            </View>
+            <Text className={`flex-1 font-mono text-base ${l.checked ? 'text-mute line-through' : 'text-text'}`}>
+              {l.text}
+            </Text>
+          </Pressable>
+        ),
+      )}
     </View>
   );
 }
@@ -100,7 +141,7 @@ export function PreviewModal({ id }: { id: string }) {
               </Pressable>
             ) : null}
 
-            {item.body ? <Text className="mb-3.5 font-mono text-base leading-6 text-text">{item.body}</Text> : null}
+            {item.body ? <Body id={id} body={item.body} /> : null}
             {item.tags.length ? (
               <Text className="mb-3 font-mono text-sm text-mute">{item.tags.map((t) => `#${t}`).join(' ')}</Text>
             ) : null}
