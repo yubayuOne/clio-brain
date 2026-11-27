@@ -85,6 +85,9 @@ export function RichField({
 }: Props) {
   const input = useRef<EnrichedTextInputInstance>(null);
   const [state, setState] = useState<OnChangeStateEvent | null>(null);
+  // Frozen at mount: the native input re-applies defaultValue whenever the prop changes, which
+  // would overwrite what the user is typing and move the cursor.
+  const [initial] = useState(defaultValue);
   useImperativeHandle(ref, () => ({ setValue: (html) => input.current?.setValue(html) }), []);
 
   return (
@@ -104,7 +107,7 @@ export function RichField({
       <View className={`border-b border-rule bg-field px-2 py-3 ${tall ? 'min-h-32' : 'min-h-24'}`}>
         <EnrichedTextInput
           ref={input}
-          defaultValue={defaultValue}
+          defaultValue={initial}
           onChangeHtml={(e) => onChangeHtml(e.nativeEvent.value)}
           onChangeState={(e) => setState(e.nativeEvent)}
           accessibilityLabel={accessibilityLabel}
