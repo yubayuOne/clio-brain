@@ -2,7 +2,7 @@
   "expo": {
     "name": "Clio Brain",
     "slug": "clio-brain",
-    "version": "1.3.1",
+    "version": "1.4.0",
     "orientation": "default",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
@@ -19,7 +19,7 @@
       },
       "predictiveBackGestureEnabled": false,
       "package": "com.colony.cliobrain",
-      "versionCode": 7,
+      "versionCode": 8,
       "softwareKeyboardLayoutMode": "resize"
     },
     "web": {
