@@ -84,6 +84,13 @@ export function SettingsSheet() {
         </Text>
       ) : null}
 
+      <Label className="mb-1 mt-5">Sync by QR</Label>
+      <Row icon="qr" title="Send by QR" onPress={() => useUi.getState().open({ kind: 'qrSend' })} />
+      <Row icon="camera" title="Scan QR" onPress={() => useUi.getState().open({ kind: 'qrScan' })} last />
+      <Text className="mt-2 font-mono text-sm text-mute">
+        Merges the other phone&apos;s notes into this one. Do it both ways to make the phones match.
+      </Text>
+
       {driveAvailable() ? (
         <>
           <Label className="mb-1 mt-5">Google Drive</Label>

@@ -10,6 +10,8 @@ import { FolderForm } from '@/features/folders/FolderForm';
 import { SettingsSheet } from '@/features/settings/SettingsSheet';
 import { FolderSheet } from '@/features/folders/FolderSheet';
 import { MoveSheet } from '@/features/folders/MoveSheet';
+import { QrScanSheet } from '@/features/qrsync/QrScanSheet';
+import { QrSendSheet } from '@/features/qrsync/QrSendSheet';
 import { useData } from '@/store/data';
 import { useUi, type Overlay } from '@/store/ui';
 
@@ -23,6 +25,7 @@ function goBack(o: Overlay): void {
   }
   if (o.kind === 'thread' && o.returnTo) return ui.open({ kind: 'edit', id: o.returnTo });
   if (o.kind === 'folderForm') return ui.open({ kind: 'folders' });
+  if (o.kind === 'qrSend' || o.kind === 'qrScan') return ui.open({ kind: 'settings' });
   ui.close();
 }
 
@@ -56,6 +59,8 @@ export function OverlayHost() {
       {overlay.kind === 'folders' ? <FolderSheet /> : null}
       {overlay.kind === 'folderForm' ? <FolderForm focus={overlay.focus} /> : null}
       {overlay.kind === 'settings' ? <SettingsSheet /> : null}
+      {overlay.kind === 'qrSend' ? <QrSendSheet /> : null}
+      {overlay.kind === 'qrScan' ? <QrScanSheet /> : null}
       {overlay.kind === 'edit' && picker ? <LinkPicker id={overlay.id} /> : null}
       {overlay.kind === 'edit' && moving ? <MoveSheet id={overlay.id} /> : null}
       {overlay.kind === 'edit' && reminding ? <ReminderSheet id={overlay.id} /> : null}

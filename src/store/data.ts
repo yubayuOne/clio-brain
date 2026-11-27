@@ -54,6 +54,11 @@ interface DataState {
    * Google's sign-in; background syncs pass false and do nothing when no account is connected.
    */
   syncDrive: (interactive: boolean) => Promise<SyncResult>;
+  /**
+   * Merges another device's data (received by QR) into this one: nothing local is overwritten
+   * unless the other copy is newer. Resolves false, changing nothing, if the result is inconsistent.
+   */
+  mergeIn: (remote: BackupData) => Promise<boolean>;
 
   addItem: (draft: NewItem) => Item;
   updateItem: (id: string, patch: Partial<Omit<Item, 'id'>>) => void;
@@ -107,6 +112,17 @@ function rescheduleAll(items: Item[]): void {
   for (const i of items) if (i.remindAt && i.remindAt > now) void scheduleReminder(i.id, i.title, i.remindAt);
 }
 
+/** Writes merged data in one transaction, then shows it and reschedules reminders. */
+async function applyData(merged: BackupData): Promise<void> {
+  await repo.replaceAll(merged.boards, merged.items, merged.threads, merged.tombstones);
+  const cur = useData.getState().currentBoardId;
+  useData.setState({
+    ...merged,
+    currentBoardId: merged.boards.some((b) => b.id === cur) ? cur : (merged.boards[0]?.id ?? ''),
+  });
+  rescheduleAll(merged.items);
+}
+
 let syncing: Promise<SyncResult> | null = null;
 
 async function runSync(interactive: boolean): Promise<SyncResult> {
@@ -140,12 +156,7 @@ async function runSync(interactive: boolean): Promise<SyncResult> {
       ) {
         continue;
       }
-      if (!sameData(merged, local)) {
-        await repo.replaceAll(merged.boards, merged.items, merged.threads, merged.tombstones);
-        const cur = merged.boards.some((b) => b.id === now.currentBoardId) ? now.currentBoardId : merged.boards[0]?.id;
-        useData.setState({ ...merged, currentBoardId: cur ?? '' });
-        rescheduleAll(merged.items);
-      }
+      if (!sameData(merged, local)) await applyData(merged);
       return result(true, `Synced with ${auth.email}`);
     }
     return result(false, 'Your data kept changing during sync. Try again.');
@@ -215,6 +226,15 @@ export const useData = create<DataState>((set, get) => ({
   },
 
   dismissSaveError: () => set({ saveFailed: false }),
+
+  mergeIn: async (remote) => {
+    const { boards, items, threads, tombstones } = get();
+    const local: BackupData = { boards, items, threads, tombstones };
+    const merged = mergeData(local, remote);
+    if (!isConsistent(merged)) return false;
+    if (!sameData(merged, local)) await applyData(merged);
+    return true;
+  },
 
   syncDrive: (interactive) => {
     syncing ??= runSync(interactive)

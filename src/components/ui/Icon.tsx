@@ -26,6 +26,8 @@ const PATHS = {
   download: 'M12 4v11M7 10l5 5 5-5M5 20h14',
   share:
     'M6 12a2 2 0 1 0 4 0a2 2 0 1 0-4 0M14 6a2 2 0 1 0 4 0a2 2 0 1 0-4 0M14 18a2 2 0 1 0 4 0a2 2 0 1 0-4 0M9.8 11l4.4-3M9.8 13l4.4 3',
+  qr: 'M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h2v2h-2zM18 18h2v2h-2zM14 18h1M18 14h2',
+  camera: 'M4 8h3l2-3h6l2 3h3v11H4zM9 13a3 3 0 1 0 6 0a3 3 0 1 0-6 0',
   undo: 'M9 14L4 9l5-5M4 9h10a6 6 0 0 1 0 12h-3',
   cloud: 'M7 18a4 4 0 0 1-.5-7.97A6 6 0 0 1 18 9a4.5 4.5 0 0 1-.5 9z',
   strike:

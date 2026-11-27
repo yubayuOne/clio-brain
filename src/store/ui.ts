@@ -13,7 +13,9 @@ export type Overlay =
   | { kind: 'thread'; a: string; b: string; returnTo: string | null }
   | { kind: 'folders' }
   | { kind: 'folderForm'; focus: 'new' | 'rename' }
-  | { kind: 'settings' };
+  | { kind: 'settings' }
+  | { kind: 'qrSend' }
+  | { kind: 'qrScan' };
 
 /** Snackbar offered after a delete; `run` puts the deleted records back. */
 export interface UndoOffer {
