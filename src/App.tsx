@@ -18,6 +18,7 @@ import { ActionMenu } from '@/features/shell/ActionMenu';
 import { Header } from '@/features/shell/Header';
 import { OverlayHost } from '@/features/shell/OverlayHost';
 import { StatusCard } from '@/features/shell/StatusCard';
+import { UndoBar } from '@/features/shell/UndoBar';
 import { useReminderTaps } from '@/lib/reminders';
 import { widgetModule } from '@/lib/widget';
 import { useData } from '@/store/data';
@@ -151,6 +152,7 @@ export default function App() {
         <SafeSides>
           <Workspace />
           <OverlayHost />
+          <UndoBar />
           <ConfirmDialog />
         </SafeSides>
       </SafeAreaProvider>

@@ -9,6 +9,7 @@ import { threadColors } from '@/theme/tokens';
 import type { Board, Item, ItemType, Thread, Tombstone } from '@/types';
 import { cancelAllReminders, cancelReminder, scheduleReminder } from '@/lib/reminders';
 import { uid } from '@/lib/text';
+import { restorable, type Removed } from '@/lib/undo';
 
 export type LoadStatus = 'loading' | 'ready' | 'error';
 
@@ -65,17 +66,20 @@ interface DataState {
   placeItem: (id: string, x: number, y: number) => void;
   commitItem: (id: string) => void;
   bringToFront: (id: string) => void;
-  deleteItem: (id: string) => void;
+  /** Returns what was removed, for the Undo snackbar; null if the item does not exist. */
+  deleteItem: (id: string) => Removed | null;
   moveItemToBoard: (id: string, boardId: string) => void;
   arrangeBoard: () => void;
 
   connect: (fromId: string, toId: string) => boolean;
   updateThread: (fromId: string, toId: string, patch: Partial<Pick<Thread, 'label' | 'color'>>) => void;
-  cutThread: (fromId: string, toId: string) => void;
+  cutThread: (fromId: string, toId: string) => Removed | null;
 
   createBoard: (name: string) => string;
   renameBoard: (id: string, name: string) => void;
-  deleteBoard: (id: string) => void;
+  deleteBoard: (id: string) => Removed | null;
+  /** Puts back what a delete removed (as far as it still fits), with its reminders. */
+  restore: (removed: Removed) => void;
   selectBoard: (id: string) => void;
 }
 
@@ -288,6 +292,13 @@ export const useData = create<DataState>((set, get) => ({
   },
 
   deleteItem: (id) => {
+    const item = get().items.find((i) => i.id === id);
+    if (!item) return null;
+    const removed: Removed = {
+      boards: [],
+      items: [item],
+      threads: get().threads.filter((t) => t.fromId === id || t.toId === id),
+    };
     const now = Date.now();
     bury([
       { kind: 'item', id, deletedAt: now },
@@ -301,6 +312,7 @@ export const useData = create<DataState>((set, get) => ({
     }));
     persist(repo.deleteItem(id));
     cancelReminder(id);
+    return removed;
   },
 
   /** Threads only live within one board, so moving an item cuts its threads. */
@@ -358,9 +370,12 @@ export const useData = create<DataState>((set, get) => ({
   },
 
   cutThread: (fromId, toId) => {
+    const thread = get().threads.find((t) => t.fromId === fromId && t.toId === toId);
+    if (!thread) return null;
     bury([{ kind: 'thread', id: threadKey(fromId, toId), deletedAt: Date.now() }]);
-    set((s) => ({ threads: s.threads.filter((t) => !(t.fromId === fromId && t.toId === toId)) }));
+    set((s) => ({ threads: s.threads.filter((t) => t !== thread) }));
     persist(repo.deleteThread(fromId, toId));
+    return { boards: [], items: [], threads: [thread] };
   },
 
   createBoard: (name) => {
@@ -387,9 +402,15 @@ export const useData = create<DataState>((set, get) => ({
   },
 
   deleteBoard: (id) => {
-    const { boards, items, currentBoardId } = get();
-    if (boards.length < 2) return;
+    const { boards, items, threads, currentBoardId } = get();
+    const board = boards.find((b) => b.id === id);
+    if (!board || boards.length < 2) return null;
     const gone = new Set(items.filter((i) => i.boardId === id).map((i) => i.id));
+    const removed: Removed = {
+      boards: [board],
+      items: items.filter((i) => gone.has(i.id)),
+      threads: threads.filter((t) => gone.has(t.fromId) || gone.has(t.toId)),
+    };
     const rest = boards.filter((b) => b.id !== id);
     const cur = currentBoardId === id ? (rest[0]?.id ?? '') : currentBoardId;
     const now = Date.now();
@@ -408,6 +429,25 @@ export const useData = create<DataState>((set, get) => ({
     }));
     persist(repo.deleteBoard(id).then(() => repo.saveSetting('currentBoard', cur)));
     gone.forEach(cancelReminder);
+    return removed;
+  },
+
+  restore: (removed) => {
+    const now = Date.now();
+    const back = restorable(get(), removed, now);
+    set((s) => ({
+      boards: [...s.boards, ...back.boards],
+      items: [...s.items, ...back.items],
+      threads: [...s.threads, ...back.threads],
+    }));
+    persist(
+      (async () => {
+        for (const b of back.boards) await repo.upsertBoard(b);
+        await repo.upsertItems(back.items);
+        for (const t of back.threads) await repo.upsertThread(t);
+      })(),
+    );
+    for (const i of back.items) if (i.remindAt && i.remindAt > now) void scheduleReminder(i.id, i.title, i.remindAt);
   },
 
   selectBoard: (id) => {

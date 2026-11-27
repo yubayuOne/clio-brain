@@ -29,9 +29,10 @@ export function FolderForm({ focus }: { focus: 'new' | 'rename' }) {
   };
   const remove = () =>
     useUi.getState().ask('Delete this folder and everything in it?', () => {
-      useData.getState().deleteBoard(board.id);
+      const gone = useData.getState().deleteBoard(board.id);
       useUi.setState({ selectedId: null, group: 'inbox', drill: null });
       close();
+      if (gone) useUi.getState().offerUndo('Folder deleted', () => useData.getState().restore(gone));
     });
 
   return (

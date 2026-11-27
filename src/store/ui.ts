@@ -15,6 +15,12 @@ export type Overlay =
   | { kind: 'folderForm'; focus: 'new' | 'rename' }
   | { kind: 'settings' };
 
+/** Snackbar offered after a delete; `run` puts the deleted records back. */
+export interface UndoOffer {
+  message: string;
+  run: () => void;
+}
+
 export interface Confirm {
   message: string;
   onConfirm: () => void;
@@ -37,6 +43,7 @@ interface UiState {
   connectMode: boolean;
   selectedId: string | null;
   hint: string | null;
+  undo: UndoOffer | null;
   /** Remembered canvas view per board. */
   views: Record<string, Viewport>;
   newItemId: string | null;
@@ -56,11 +63,16 @@ interface UiState {
   toggleConnect: () => void;
   select: (id: string | null) => void;
   flash: (text: string) => void;
+  /** Shows "<message> · Undo" for a few seconds. */
+  offerUndo: (message: string, run: () => void) => void;
+  dismissUndo: () => void;
   setView: (boardId: string, v: Viewport) => void;
   setNewItem: (id: string | null) => void;
 }
 
 let hintTimer: ReturnType<typeof setTimeout> | undefined;
+let undoTimer: ReturnType<typeof setTimeout> | undefined;
+const UNDO_FOR = 6000;
 
 export const useUi = create<UiState>((set) => ({
   tab: 'board',
@@ -74,6 +86,7 @@ export const useUi = create<UiState>((set) => ({
   connectMode: false,
   selectedId: null,
   hint: null,
+  undo: null,
   views: {},
   newItemId: null,
   canvasSize: { w: 390, h: 700 },
@@ -94,6 +107,15 @@ export const useUi = create<UiState>((set) => ({
     clearTimeout(hintTimer);
     set({ hint: text });
     hintTimer = setTimeout(() => set({ hint: null }), 2000);
+  },
+  offerUndo: (message, run) => {
+    clearTimeout(undoTimer);
+    set({ undo: { message, run } });
+    undoTimer = setTimeout(() => set({ undo: null }), UNDO_FOR);
+  },
+  dismissUndo: () => {
+    clearTimeout(undoTimer);
+    set({ undo: null });
   },
   setView: (boardId, v) => set((s) => ({ views: { ...s.views, [boardId]: v } })),
   setNewItem: (newItemId) => set({ newItemId }),

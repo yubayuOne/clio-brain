@@ -37,8 +37,9 @@ export function ThreadSheet({ a, b, returnTo }: Props) {
   };
   const cut = () =>
     useUi.getState().ask('Cut this thread?', () => {
-      useData.getState().cutThread(thread.fromId, thread.toId);
+      const gone = useData.getState().cutThread(thread.fromId, thread.toId);
       leave();
+      if (gone) useUi.getState().offerUndo('Thread cut', () => useData.getState().restore(gone));
     });
 
   return (
