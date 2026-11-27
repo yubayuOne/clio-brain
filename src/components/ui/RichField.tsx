@@ -4,11 +4,9 @@ import {
   EnrichedTextInput,
   type EnrichedTextInputInstance,
   type HtmlStyle,
-  type OnChangeStateEvent,
+  type TextShortcut,
 } from 'react-native-enriched-html';
 import { colors, fonts } from '@/theme/tokens';
-import { IconButton } from './IconButton';
-import type { IconName } from './Icon';
 
 export interface RichFieldHandle {
   /** Replaces the whole content (used by undo). */
@@ -27,40 +25,20 @@ interface Props {
   ref?: Ref<RichFieldHandle>;
 }
 
-type Tool = {
-  icon: IconName;
-  label: string;
-  active: (s: OnChangeStateEvent) => boolean;
-  run: (e: EnrichedTextInputInstance) => void;
-};
-
-const TOOLS: Tool[] = [
-  {
-    icon: 'checklist',
-    label: 'Checklist',
-    active: (s) => s.checkboxList.isActive,
-    run: (e) => e.toggleCheckboxList(false),
-  },
-  {
-    icon: 'listBullet',
-    label: 'Bulleted list',
-    active: (s) => s.unorderedList.isActive,
-    run: (e) => e.toggleUnorderedList(),
-  },
-  {
-    icon: 'listNumber',
-    label: 'Numbered list',
-    active: (s) => s.orderedList.isActive,
-    run: (e) => e.toggleOrderedList(),
-  },
-  { icon: 'bold', label: 'Bold', active: (s) => s.bold.isActive, run: (e) => e.toggleBold() },
-  { icon: 'italic', label: 'Italic', active: (s) => s.italic.isActive, run: (e) => e.toggleItalic() },
-  {
-    icon: 'strike',
-    label: 'Strikethrough',
-    active: (s) => s.strikeThrough.isActive,
-    run: (e) => e.toggleStrikeThrough(),
-  },
+/**
+ * Markdown-style typing instead of a toolbar. Line starts: "- " or "* " bullet, "1. " numbered,
+ * "[] " or "[ ] " checklist (not "- [ ] ": "- " already turns the line into a bullet). Inline:
+ * **bold**, *italic*, ~~strikethrough~~.
+ */
+const SHORTCUTS: TextShortcut[] = [
+  { trigger: '[] ', style: 'checkbox_list' },
+  { trigger: '[ ] ', style: 'checkbox_list' },
+  { trigger: '- ', style: 'unordered_list' },
+  { trigger: '* ', style: 'unordered_list' },
+  { trigger: '1. ', style: 'ordered_list' },
+  { trigger: '**', style: 'bold' },
+  { trigger: '*', style: 'italic' },
+  { trigger: '~~', style: 'strikethrough' },
 ];
 
 const htmlStyle: HtmlStyle = {
@@ -70,9 +48,8 @@ const htmlStyle: HtmlStyle = {
 };
 
 /**
- * Note body editor: native rich text (react-native-enriched-html) with a small toolbar for
- * checklists, bulleted and numbered lists, bold, italic and strikethrough. Enter continues a
- * list, "- " and "1. " start one, and checkboxes tick by tapping them. Content is HTML.
+ * Note body editor: native rich text (react-native-enriched-html) driven by the typing
+ * shortcuts above. Enter continues a list and checkboxes tick by tapping them. Content is HTML.
  */
 export function RichField({
   defaultValue,
@@ -84,42 +61,27 @@ export function RichField({
   ref,
 }: Props) {
   const input = useRef<EnrichedTextInputInstance>(null);
-  const [state, setState] = useState<OnChangeStateEvent | null>(null);
   // Frozen at mount: the native input re-applies defaultValue whenever the prop changes, which
   // would overwrite what the user is typing and move the cursor.
   const [initial] = useState(defaultValue);
   useImperativeHandle(ref, () => ({ setValue: (html) => input.current?.setValue(html) }), []);
 
   return (
-    <View>
-      <View accessibilityRole="toolbar" accessibilityLabel="Formatting" className="mb-1 flex-row flex-wrap gap-1">
-        {TOOLS.map((t) => (
-          <IconButton
-            key={t.icon}
-            icon={t.icon}
-            label={t.label}
-            size={44}
-            pressed={state ? t.active(state) : false}
-            onPress={() => input.current && t.run(input.current)}
-          />
-        ))}
-      </View>
-      <View className={`border-b border-rule bg-field px-2 py-3 ${tall ? 'min-h-32' : 'min-h-24'}`}>
-        <EnrichedTextInput
-          ref={input}
-          defaultValue={initial}
-          onChangeHtml={(e) => onChangeHtml(e.nativeEvent.value)}
-          onChangeState={(e) => setState(e.nativeEvent)}
-          accessibilityLabel={accessibilityLabel}
-          placeholder={placeholder}
-          placeholderTextColor={colors.mute}
-          autoFocus={autoFocus}
-          scrollEnabled={false}
-          cursorColor={colors.text}
-          style={{ fontFamily: fonts.mono, fontSize: 16, lineHeight: 24, color: colors.text }}
-          htmlStyle={htmlStyle}
-        />
-      </View>
+    <View className={`border-b border-rule bg-field px-2 py-3 ${tall ? 'min-h-32' : 'min-h-24'}`}>
+      <EnrichedTextInput
+        ref={input}
+        defaultValue={initial}
+        onChangeHtml={(e) => onChangeHtml(e.nativeEvent.value)}
+        textShortcuts={SHORTCUTS}
+        accessibilityLabel={accessibilityLabel}
+        placeholder={placeholder}
+        placeholderTextColor={colors.mute}
+        autoFocus={autoFocus}
+        scrollEnabled={false}
+        cursorColor={colors.text}
+        style={{ fontFamily: fonts.mono, fontSize: 16, lineHeight: 24, color: colors.text }}
+        htmlStyle={htmlStyle}
+      />
     </View>
   );
 }

@@ -53,19 +53,19 @@ A flat 10px red pin centered on the top edge of every paper (cards and the previ
 
 ## Components
 
-| Component     | Spec                                                                                                                                |
-| ------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| Button        | height 48, corner 4, Oswald 16 uppercase; variants `primary` (red), `outline`, `danger`                                             |
-| IconButton    | 48 or 44 square, 24 icon; paper variants (`outline`, `primary`, `danger`) and dark (`dark`, `darkDanger`, `dock`); `label` required |
-| Field         | min height 48, thin dark fill + `rule` underline, Courier 16; `headline` for Oswald 24 titles                                       |
-| RichField     | note body editor: a row of 44 icon toggles (checklist, bullets, numbers, bold, italic, strikethrough) above a Field-styled editor   |
-| UndoBar       | paper snackbar bottom left after a delete, message + outline Undo button, 6 s                                                       |
-| Segmented     | height 44, corner 4; `dark` over the canvas (active = paper), `paper` in sheets (active = ink)                                      |
-| Row           | height 48, thin divider, 16 icon on the left, right meta max 35%                                                                    |
-| Sheet         | from the bottom, 70% scrim, header: optional back, title, icon actions, close                                                       |
-| ConfirmDialog | centered, max 320, uppercase message, Cancel left, red Delete right                                                                 |
-| Board card    | width Note 200, Link 178, File 152                                                                                                  |
-| Icon          | one family in `Icon.tsx`: 24 grid, 2 stroke, round caps; sizes 16/20/24                                                             |
+| Component     | Spec                                                                                                                                                    |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Button        | height 48, corner 4, Oswald 16 uppercase; variants `primary` (red), `outline`, `danger`                                                                 |
+| IconButton    | 48 or 44 square, 24 icon; paper variants (`outline`, `primary`, `danger`) and dark (`dark`, `darkDanger`, `dock`); `label` required                     |
+| Field         | min height 48, thin dark fill + `rule` underline, Courier 16; `headline` for Oswald 24 titles                                                           |
+| RichField     | note body editor, Field-styled, no toolbar: markdown typing (`- ` / `* ` bullets, `1. ` numbers, `[] ` checklist, `**bold**`, `*italic*`, `~~strike~~`) |
+| UndoBar       | paper snackbar bottom left after a delete, message + outline Undo button, 6 s                                                                           |
+| Segmented     | height 44, corner 4; `dark` over the canvas (active = paper), `paper` in sheets (active = ink)                                                          |
+| Row           | height 48, thin divider, 16 icon on the left, right meta max 35%                                                                                        |
+| Sheet         | from the bottom, 70% scrim, header: optional back, title, icon actions, close                                                                           |
+| ConfirmDialog | centered, max 320, uppercase message, Cancel left, red Delete right                                                                                     |
+| Board card    | width Note 200, Link 178, File 152                                                                                                                      |
+| Icon          | one family in `Icon.tsx`: 24 grid, 2 stroke, round caps; sizes 16/20/24                                                                                 |
 
 ## Motion
 
