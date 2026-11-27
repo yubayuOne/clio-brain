@@ -1,3 +1,4 @@
+import { useKeepAwake } from 'expo-keep-awake';
 import { useEffect, useMemo, useState } from 'react';
 import { Text, useWindowDimensions, View } from 'react-native';
 import { QrCode } from '@/components/ui/QrCode';
@@ -12,6 +13,8 @@ const FRAME_MS = 450;
 
 /** Shows this phone's data as a loop of QR codes for "Scan QR" on another phone. */
 export function QrSendSheet() {
+  // The loop can take a while; the screen must not sleep while the other phone is scanning.
+  useKeepAwake();
   const { width, height } = useWindowDimensions();
   const size = Math.min(width - 64, height * 0.55, 380);
   const frames = useMemo(() => {
