@@ -3,7 +3,7 @@ import { Text } from 'react-native';
 import { Field } from '@/components/ui/Field';
 import { Row } from '@/components/ui/Row';
 import { Sheet, SheetHeader } from '@/components/ui/Sheet';
-import { KIND_LABEL } from '@/lib/text';
+import { KIND_LABEL, htmlToText } from '@/lib/text';
 import { useData } from '@/store/data';
 import { useUi } from '@/store/ui';
 
@@ -24,7 +24,7 @@ export function LinkPicker({ id }: { id: string }) {
         x.boardId === me.boardId &&
         x.id !== id &&
         !linked.has(x.id) &&
-        (!query || `${x.title} ${x.body}`.toLowerCase().includes(query)),
+        (!query || `${x.title} ${htmlToText(x.body)}`.toLowerCase().includes(query)),
     );
   }, [all, threads, id, q]);
 

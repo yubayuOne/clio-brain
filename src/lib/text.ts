@@ -59,62 +59,66 @@ export function formatTime(ms: number): string {
   return new Date(ms).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
 }
 
-/** A list line: "1. ", "- " or a checklist "- [ ] " / "- [x] ", with optional indent. */
-const LIST_MARK = /^(\s*)(?:(\d+)\.|-) (?:\[[ xX]\] )?/;
-const CHECK_MARK = /^(\s*)- \[([ xX])\] /;
+/** Note bodies are HTML from the rich editor. Bodies written before 1.3 are plain text. */
+export const isHtml = (body: string): boolean => body.trimStart().startsWith('<html>');
+
+const escapeHtml = (s: string): string => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+/** Old plain-text list markers: "- [ ] ", "- [x] ", "1. ", "- ". */
+const LEGACY_LINE = /^\s*(?:- \[([ xX])\] |(\d+)\. |- )(.*)$/;
+
+/** Converts an old plain-text body to editor HTML, turning its markers into real lists. */
+export function plainToHtml(body: string): string {
+  const out: string[] = [];
+  let open = '';
+  const close = () => {
+    if (open) out.push(open === 'ol' ? '</ol>' : '</ul>');
+    open = '';
+  };
+  for (const line of body.split('\n')) {
+    const m = LEGACY_LINE.exec(line);
+    const kind = !m ? '' : m[1] !== undefined ? 'check' : m[2] !== undefined ? 'ol' : 'ul';
+    if (kind !== open) {
+      close();
+      if (kind) out.push(kind === 'check' ? '<ul data-type="checkbox">' : `<${kind}>`);
+      open = kind;
+    }
+    if (m && kind) out.push(`<li${kind === 'check' && m[1] !== ' ' ? ' checked' : ''}>${escapeHtml(m[3] ?? '')}</li>`);
+    else out.push(line.trim() ? `<p>${escapeHtml(line)}</p>` : '<br>');
+  }
+  close();
+  return `<html>\n${out.join('\n')}\n</html>`;
+}
+
+export const toHtml = (body: string): string => (isHtml(body) ? body : plainToHtml(body));
+
+const ENTITIES: Record<string, string> = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ', '#39': "'" };
 
 /**
- * Called when a multiline field changes. If the change was Enter on a list line, returns the
- * text with the next marker ("2. ", "- ", "- [ ] ") added and where the cursor goes; Enter on an
- * empty item removes its marker and ends the list. Returns null for every other change.
+ * Plain text of a body for compact previews (cards, list rows, search): list items get
+ * "• ", "1. ", "☐ " or "☑ ". shortcut: a regex tokenizer that only knows the editor's own
+ * output; use a real HTML parser if bodies ever come from elsewhere.
  */
-export function continueList(prev: string, next: string): { text: string; cursor: number } | null {
-  if (next.length !== prev.length + 1) return null;
-  let i = 0;
-  while (i < prev.length && prev[i] === next[i]) i++;
-  if (next[i] !== '\n' || next.slice(i + 1) !== prev.slice(i)) return null;
-  const lineStart = prev.lastIndexOf('\n', i - 1) + 1;
-  const line = prev.slice(lineStart, i);
-  const m = LIST_MARK.exec(line);
-  if (!m) return null;
-  if (line.length === m[0].length) return { text: prev.slice(0, lineStart) + prev.slice(i), cursor: lineStart };
-  const indent = m[1] ?? '';
-  const marker = m[2] ? `${indent}${Number(m[2]) + 1}. ` : CHECK_MARK.test(line) ? `${indent}- [ ] ` : `${indent}- `;
-  return { text: next.slice(0, i + 1) + marker + next.slice(i + 1), cursor: i + 1 + marker.length };
+export function htmlToText(body: string): string {
+  if (!isHtml(body)) return body;
+  const lists: { kind: 'ul' | 'ol' | 'check'; n: number }[] = [];
+  let out = '';
+  for (const m of body.matchAll(/<(\/?)([a-z0-9]+)([^>]*)>|([^<]+)/gi)) {
+    const [, end, rawTag, attrs = '', text] = m;
+    if (text !== undefined) {
+      out += text.replace(/\n/g, '').replace(/&(#?\w+);/g, (e, k: string) => ENTITIES[k] ?? e);
+      continue;
+    }
+    const tag = rawTag?.toLowerCase();
+    if (tag === 'ul' || tag === 'ol') {
+      if (end) lists.pop();
+      else lists.push({ kind: tag === 'ol' ? 'ol' : /data-type="checkbox"/.test(attrs) ? 'check' : 'ul', n: 0 });
+    } else if (tag === 'li' && !end) {
+      const l = lists[lists.length - 1];
+      out += !l || l.kind === 'ul' ? '• ' : l.kind === 'ol' ? `${++l.n}. ` : /\bchecked\b/.test(attrs) ? '☑ ' : '☐ ';
+    } else if ((end && (tag === 'li' || tag === 'p' || /^h[1-6]$/.test(tag ?? ''))) || tag === 'br') {
+      out += '\n';
+    }
+  }
+  return out.replace(/\n{3,}/g, '\n\n').trim();
 }
-
-export interface BodyLine {
-  text: string;
-  /** null for plain text, otherwise whether the checklist box is ticked. */
-  checked: boolean | null;
-}
-
-export function bodyLines(body: string): BodyLine[] {
-  return body.split('\n').map((l) => {
-    const m = CHECK_MARK.exec(l);
-    return m ? { text: l.slice(m[0].length), checked: m[2] !== ' ' } : { text: l, checked: null };
-  });
-}
-
-/** Ticks or unticks the checklist box on line `index`. */
-export function toggleCheck(body: string, index: number): string {
-  return body
-    .split('\n')
-    .map((l, n) =>
-      n === index ? l.replace(CHECK_MARK, (_, s: string, c: string) => `${s}- [${c === ' ' ? 'x' : ' '}] `) : l,
-    )
-    .join('\n');
-}
-
-/** Turns the line holding `cursor` into a checklist item, or back into plain text. */
-export function toggleChecklistLine(body: string, cursor: number): string {
-  const start = body.lastIndexOf('\n', cursor - 1) + 1;
-  const line = body.slice(start).split('\n')[0] ?? '';
-  const m = CHECK_MARK.exec(line);
-  const next = m ? (m[1] ?? '') + line.slice(m[0].length) : `- [ ] ${line}`;
-  return body.slice(0, start) + next + body.slice(start + line.length);
-}
-
-/** Body text for compact previews (cards, list rows): checklist markers become boxes. */
-export const displayBody = (body: string): string =>
-  body.replace(/^(\s*)- \[ \] /gm, '$1☐ ').replace(/^(\s*)- \[[xX]\] /gm, '$1☑ ');

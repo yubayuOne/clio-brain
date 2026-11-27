@@ -27,6 +27,12 @@ const PATHS = {
   undo: 'M9 14L4 9l5-5M4 9h10a6 6 0 0 1 0 12h-3',
   cloud: 'M7 18a4 4 0 0 1-.5-7.97A6 6 0 0 1 18 9a4.5 4.5 0 0 1-.5 9z',
   checklist: 'M4 4h6v6H4zM4 14h6v6H4zM14 7h6M14 17h6',
+  listBullet: 'M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01',
+  listNumber: 'M10 6h10M10 12h10M10 18h10M4 4h1.5v5M4 9h3M4 15c0-1 3-1 3 .5S4 18 4 20h3',
+  bold: 'M7 4h6a4 4 0 0 1 0 8H7zM7 12h7a4 4 0 0 1 0 8H7z',
+  italic: 'M10 4h8M6 20h8M14 4l-4 16',
+  strike:
+    'M4 12h16M16 7c-.5-1.8-2-3-4-3-2.5 0-4 1.3-4 3.2 0 1.4.8 2.2 2 2.8M8 17c.5 1.8 2 3 4 3 2.5 0 4-1.3 4-3.2 0-.6-.2-1.2-.5-1.6',
 } as const;
 
 export type IconName = keyof typeof PATHS;

@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { FlatList, Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Segmented } from '@/components/ui/Segmented';
-import { KIND_LABEL, displayBody } from '@/lib/text';
+import { KIND_LABEL, htmlToText } from '@/lib/text';
 import { useData } from '@/store/data';
 import { useUi, type ListGroup } from '@/store/ui';
 import { shadow } from '@/theme/tokens';
@@ -19,7 +19,7 @@ const drillName = (d: string): string =>
   d.startsWith('type:') ? KIND_LABEL[d.slice(5) as ItemType] : `#${d.slice(4)}`;
 
 function ItemRow({ item, threads }: { item: Item; threads: Thread[] }) {
-  const sub = item.type === 'link' ? item.url : displayBody(item.body) || item.fileName;
+  const sub = item.type === 'link' ? item.url : htmlToText(item.body) || item.fileName;
   const count = threads.filter((t) => t.fromId === item.id).length;
   const meta = [item.tags.map((t) => `#${t}`).join(' '), count ? `${count} ${count === 1 ? 'thread' : 'threads'}` : '']
     .filter(Boolean)

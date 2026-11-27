@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Linking, Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useShallow } from 'zustand/react/shallow';
@@ -6,17 +6,22 @@ import { Button } from '@/components/ui/Button';
 import { Field } from '@/components/ui/Field';
 import { Icon } from '@/components/ui/Icon';
 import { IconButton } from '@/components/ui/IconButton';
+import { RichField } from '@/components/ui/RichField';
 import { Row } from '@/components/ui/Row';
-import { KIND_LABEL, cleanTitle, formatWhen, normalizeUrl, parseTags, toggleChecklistLine } from '@/lib/text';
+import { KIND_LABEL, cleanTitle, formatWhen, htmlToText, normalizeUrl, parseTags, toHtml } from '@/lib/text';
 import { incoming, outgoing, useData } from '@/store/data';
 import { useUi } from '@/store/ui';
 import { colors, shadow } from '@/theme/tokens';
+import { useDraft } from './useDraft';
 
-const UNDO_PAUSE = 800;
-const UNDO_LIMIT = 100;
+/** The body saves itself this long after the last change (ticking a checkbox fires no blur). */
+const BODY_SAVE_DELAY = 600;
+
+/** An editor with no text is stored as an empty body, so "has a note" checks keep working. */
+const bodyToSave = (html: string): string => (htmlToText(html).trim() ? html : '');
 
 /**
- * Full-screen edit form. Fields save when editing ends; leaving the form marks an
+ * Full-screen edit form. Fields save when editing ends (the body shortly after each change); leaving the form marks an
  * Inbox item as processed. No labels or helper text: placeholders name each field
  * and accessibilityLabel carries the name for screen readers.
  */
@@ -29,33 +34,29 @@ export function EditScreen({ id }: { id: string }) {
   const boards = useData((s) => s.boards);
   const update = useData((s) => s.updateItem);
 
-  const [title, setTitle] = useState(item?.title ?? '');
-  const [body, setBody] = useState(item?.body ?? '');
+  const {
+    title,
+    body,
+    setTitle,
+    changeTitle,
+    changeBody,
+    editor,
+    undo: undoDraft,
+    canUndo,
+  } = useDraft({
+    title: item?.title ?? '',
+    body: item?.body ? toHtml(item.body) : '',
+  });
   const [url, setUrl] = useState(item?.url ?? '');
   const [tags, setTags] = useState(item?.tags.join(', ') ?? '');
-  const cursor = useRef(0);
 
-  // Undo history of title and body. A burst of typing is one step: the state before it is
-  // recorded only when the previous change is more than UNDO_PAUSE ms old.
-  const history = useRef<{ title: string; body: string }[]>([]);
-  const lastChange = useRef(0);
-  const [canUndo, setCanUndo] = useState(false);
-  const record = (force = false) => {
-    const now = Date.now();
-    if (force || now - lastChange.current > UNDO_PAUSE) {
-      history.current = [...history.current.slice(-(UNDO_LIMIT - 1)), { title, body }];
-      setCanUndo(true);
-    }
-    lastChange.current = force ? 0 : now;
-  };
-  const changeTitle = (t: string) => {
-    record();
-    setTitle(t);
-  };
-  const changeBody = (b: string) => {
-    record();
-    setBody(b);
-  };
+  useEffect(() => {
+    const t = setTimeout(() => {
+      const next = bodyToSave(body);
+      if (next !== useData.getState().items.find((i) => i.id === id)?.body) update(id, { body: next });
+    }, BODY_SAVE_DELAY);
+    return () => clearTimeout(t);
+  }, [body, id, update]);
 
   if (!item) return null;
   const board = boards.find((b) => b.id === item.boardId);
@@ -65,7 +66,7 @@ export function EditScreen({ id }: { id: string }) {
   const save = () => {
     update(id, {
       title: cleanTitle(title),
-      body,
+      body: bodyToSave(body),
       url: normalizeUrl(url),
       tags: parseTags(tags),
       processed: true,
@@ -74,23 +75,13 @@ export function EditScreen({ id }: { id: string }) {
   };
   const remove = () =>
     useUi.getState().ask('Delete this item?', () => {
-      useData.getState().deleteItem(id);
+      const gone = useData.getState().deleteItem(id);
       useUi.getState().close();
+      if (gone) useUi.getState().offerUndo('Item deleted', () => useData.getState().restore(gone));
     });
   const undo = () => {
-    const prev = history.current.pop();
-    if (!prev) return;
-    setTitle(prev.title);
-    setBody(prev.body);
-    update(id, { title: cleanTitle(prev.title), body: prev.body });
-    lastChange.current = 0;
-    setCanUndo(history.current.length > 0);
-  };
-  const toggleChecklist = () => {
-    record(true);
-    const next = toggleChecklistLine(body, cursor.current);
-    setBody(next);
-    update(id, { body: next });
+    const prev = undoDraft();
+    if (prev) update(id, { title: cleanTitle(prev.title), body: bodyToSave(prev.body) });
   };
   const openThread = (a: string, b: string) => useUi.getState().open({ kind: 'thread', a, b, returnTo: id });
 
@@ -159,21 +150,15 @@ export function EditScreen({ id }: { id: string }) {
             </View>
           ) : null}
 
-          <View className="mb-2 flex-row items-start gap-2">
-            <View className="flex-1">
-              <Field
-                multiline
-                lists
-                accessibilityLabel="Body"
-                placeholder="Write a note"
-                value={body}
-                onChangeText={changeBody}
-                onSelectionChange={(e) => (cursor.current = e.nativeEvent.selection.start)}
-                onEndEditing={() => update(id, { body })}
-                style={{ minHeight: 128 }}
-              />
-            </View>
-            <IconButton icon="checklist" label="Checklist item" onPress={toggleChecklist} />
+          <View className="mb-2">
+            <RichField
+              ref={editor}
+              tall
+              accessibilityLabel="Body"
+              placeholder="Write a note"
+              defaultValue={body}
+              onChangeHtml={changeBody}
+            />
           </View>
 
           <View className="flex-row items-start gap-2">

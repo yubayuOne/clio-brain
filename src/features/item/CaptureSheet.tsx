@@ -2,24 +2,26 @@ import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { Button } from '@/components/ui/Button';
 import { Field } from '@/components/ui/Field';
+import { IconButton } from '@/components/ui/IconButton';
 import { Icon } from '@/components/ui/Icon';
 import { Label } from '@/components/ui/Label';
+import { RichField } from '@/components/ui/RichField';
 import { Segmented } from '@/components/ui/Segmented';
 import { Sheet, SheetHeader } from '@/components/ui/Sheet';
 import { pickAndKeepFile, type PickedFile } from '@/lib/files';
-import { KIND_LABEL, hostOf, normalizeUrl } from '@/lib/text';
+import { KIND_LABEL, hostOf, htmlToText, normalizeUrl } from '@/lib/text';
 import { useData } from '@/store/data';
 import { useUi, viewOf } from '@/store/ui';
 import { colors } from '@/theme/tokens';
 import type { ItemType } from '@/types';
+import { useDraft } from './useDraft';
 
 const TYPES: ItemType[] = ['note', 'link', 'file'];
 
 /** Quick capture: new items land in the Inbox, in the middle of the current view. */
 export function CaptureSheet() {
   const [type, setType] = useState<ItemType>('note');
-  const [title, setTitle] = useState('');
-  const [body, setBody] = useState('');
+  const { title, body, changeTitle, changeBody, editor, undo, canUndo } = useDraft({ title: '', body: '' });
   const [url, setUrl] = useState('');
   const [file, setFile] = useState<PickedFile | null>(null);
   const [error, setError] = useState('');
@@ -40,13 +42,14 @@ export function CaptureSheet() {
   const save = () => {
     const link = type === 'link' ? normalizeUrl(url) : '';
     const picked = type === 'file' ? file : null;
-    if (!title.trim() && !body.trim() && !link && !picked) {
+    const text = htmlToText(body).trim();
+    if (!title.trim() && !text && !link && !picked) {
       setError('Add a title, note, or link, or pick a file first.');
       return;
     }
     const name =
       title.trim() ||
-      (type === 'link' ? hostOf(link) : type === 'file' ? (picked?.name ?? '') : body.trim().slice(0, 40)) ||
+      (type === 'link' ? hostOf(link) : type === 'file' ? (picked?.name ?? '') : text.split('\n')[0]?.slice(0, 40)) ||
       '(untitled)';
 
     const ui = useUi.getState();
@@ -56,7 +59,7 @@ export function CaptureSheet() {
     const item = data.addItem({
       type,
       title: name,
-      body: body.trim(),
+      body: text ? body : '',
       url: link,
       fileName: picked?.name ?? '',
       fileUri: picked?.uri ?? '',
@@ -70,7 +73,11 @@ export function CaptureSheet() {
 
   return (
     <Sheet onDismiss={close}>
-      <SheetHeader title="New item" onClose={close} />
+      <SheetHeader
+        title="New item"
+        onClose={close}
+        actions={<IconButton icon="undo" label="Undo" size={44} disabled={!canUndo} onPress={() => void undo()} />}
+      />
       <View className="mb-3">
         <Segmented
           tone="paper"
@@ -114,18 +121,17 @@ export function CaptureSheet() {
       ) : null}
 
       <Label nativeID="capTitle">Title (optional)</Label>
-      <Field accessibilityLabelledBy="capTitle" value={title} onChangeText={setTitle} className="mb-3" />
+      <Field accessibilityLabelledBy="capTitle" value={title} onChangeText={changeTitle} className="mb-3" />
       <Label nativeID="capBody">{type === 'note' ? 'Note' : 'Short note (optional)'}</Label>
-      <Field
-        accessibilityLabelledBy="capBody"
-        multiline
-        lists
-        value={body}
-        onChangeText={setBody}
-        autoFocus={type === 'note'}
-        style={{ minHeight: 104 }}
-        className="mb-1"
-      />
+      <View className="mb-1">
+        <RichField
+          ref={editor}
+          accessibilityLabel={type === 'note' ? 'Note' : 'Short note'}
+          defaultValue=""
+          onChangeHtml={changeBody}
+          autoFocus={type === 'note'}
+        />
+      </View>
 
       <Text accessibilityLiveRegion="assertive" className="mb-1 min-h-5 font-mono text-sm text-red">
         {error}
