@@ -1,4 +1,4 @@
-import type { ItemType } from '@/types';
+import type { Item, ItemType } from '@/types';
 
 export const KIND_LABEL: Record<ItemType, string> = { note: 'Note', link: 'Link', file: 'File' };
 
@@ -122,3 +122,7 @@ export function htmlToText(body: string): string {
   }
   return out.replace(/\n{3,}/g, '\n\n').trim();
 }
+
+/** What the share sheet sends: title, the body as plain text, then the link. */
+export const shareTextOf = (item: Pick<Item, 'title' | 'body' | 'url'>): string =>
+  [item.title, htmlToText(toHtml(item.body)), item.url].filter(Boolean).join('\n\n');

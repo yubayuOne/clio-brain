@@ -1,10 +1,10 @@
-import { Linking, Pressable, ScrollView, Text, View } from 'react-native';
+import { Linking, Pressable, ScrollView, Share, Text, View } from 'react-native';
 import { EnrichedText } from 'react-native-enriched-html';
 import { Icon } from '@/components/ui/Icon';
 import { IconButton } from '@/components/ui/IconButton';
 import { Label } from '@/components/ui/Label';
 import { openFile } from '@/lib/files';
-import { KIND_LABEL, formatWhen, toHtml } from '@/lib/text';
+import { KIND_LABEL, formatWhen, shareTextOf, toHtml } from '@/lib/text';
 import { useShallow } from 'zustand/react/shallow';
 import { incoming, outgoing, useData } from '@/store/data';
 import { useUi } from '@/store/ui';
@@ -129,6 +129,13 @@ export function PreviewModal({ id }: { id: string }) {
             <Connections title="Referenced by" threads={inc} other={(t) => find(t.fromId)} />
 
             <View className="mt-2.5 flex-row justify-end gap-2">
+              <IconButton
+                icon="share"
+                label="Share"
+                onPress={() =>
+                  void Share.share({ message: shareTextOf(item), title: item.title }).catch(() => undefined)
+                }
+              />
               <IconButton
                 icon="edit"
                 label="Edit"
